@@ -1,5 +1,6 @@
 const { test } = require('@playwright/test');
 const { AmazonDemoPage } = require('../page/AmazonDemoPage');
+const amazonDemoData = require('../data/amazonDemoData.json');
 
 test('test case 1: search for a product', async ({ page }) => {
   const amazonDemoPage = new AmazonDemoPage(page);
