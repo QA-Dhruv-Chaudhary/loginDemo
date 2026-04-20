@@ -6,7 +6,7 @@ class AmazonDemoPage {
     this.page = page;
   }
 
-  async open(url) {
+  async open(url = '/') {
     console.log(`[AmazonDemoPage] Opening URL: ${url}`);
     await this.page.goto(url);
   }
@@ -41,8 +41,8 @@ class AmazonDemoPage {
   }
 
   async testCase1() {
-    await this.open(amazonDemoData.baseUrl);
-    await this.amazonDemo(amazonDemoData.searchQuery);
+    await this.open();
+    await this.amazonDemo('boat');
     await this.expectAmazonDemoSuccess();
   }
   async testCase2() {
