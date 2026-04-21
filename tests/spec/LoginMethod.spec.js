@@ -16,4 +16,9 @@ test.describe('Login Tests', () => {
     const loginPage = new LoginMethod(page);
     await loginPage.runInvalidPasswordTest();
   });
+  test('Test case 1: Again', async ({ page }) => {
+    const loginPage = new LoginMethod(page);
+    await loginPage.runInvalidUsernameTest();
+  });
+
 });
