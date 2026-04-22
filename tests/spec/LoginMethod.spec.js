@@ -20,6 +20,5 @@ test.describe('Login Tests', () => {
     const loginPage = new LoginMethod(page);
     await loginPage.runInvalidUsernameTest();
   });
-  //chahgdhfyvfysDvjkasvbvgjsd gh
 
 });
