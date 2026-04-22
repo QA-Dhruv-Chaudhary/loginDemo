@@ -26,4 +26,29 @@ pipeline {
             }
         }
     }
+
+    post {
+        always {
+            // Report archive karega Jenkins me
+            archiveArtifacts artifacts: 'playwright-report/**', allowEmptyArchive: true
+
+            // Email bhejega
+            emailext (
+                subject: "Playwright Build: ${currentBuild.currentResult}",
+                body: """
+                Hi,
+
+                Build Status: ${currentBuild.currentResult}
+                Job Name: ${env.JOB_NAME}
+                Build Number: ${env.BUILD_NUMBER}
+
+                Check attached Playwright report.
+
+                Thanks
+                """,
+                to: "dhruvn1236@gmail.com",
+                attachmentsPattern: 'playwright-report/**'
+            )
+        }
+    }
 }
