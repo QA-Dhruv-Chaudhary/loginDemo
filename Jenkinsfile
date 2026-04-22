@@ -6,6 +6,13 @@ pipeline {
     }
 
     stages {
+
+        stage('Checkout Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/QA-Dhruv-Chaudhary/loginDemo.git'
+            }
+        }
+
         stage('Install Dependencies') {
             steps {
                 bat 'npm ci'
@@ -22,6 +29,15 @@ pipeline {
             steps {
                 bat 'npx playwright test'
             }
+        }
+    }
+
+    post {
+        success {
+            echo 'Tests Passed ✅'
+        }
+        failure {
+            echo 'Tests Failed ❌'
         }
     }
 }
