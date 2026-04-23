@@ -29,33 +29,53 @@ pipeline {
 
     post {
         always {
-            // Report archive karega Jenkins me
+            // Archive report
             archiveArtifacts artifacts: 'playwright-report/**', allowEmptyArchive: true
 
-            // Email attachment ke liye custom filename banayega
-            bat '''
-                if exist "playwright-report\\index.html" (
-                    copy /Y "playwright-report\\index.html" "playwright-report\\Jenkins-Testo.html"
+            script {
+                def status = currentBuild.currentResult
+
+                def message = ""
+                if (status == "SUCCESS") {
+                    message = "✅ All test cases passed successfully."
+                } else if (status == "FAILURE") {
+                    message = "❌ Some test cases failed. Please check the report."
+                } else {
+                    message = "⚠️ Build is unstable. Review required."
+                }
+
+                emailext (
+                    subject: "${status == 'SUCCESS' ? '✅ Playwright Tests Passed' : '❌ Playwright Tests Failed'}",
+
+                    body: """
+🚀 Playwright Test Execution Report
+
+━━━━━━━━━━━━━━━━━━━━━━
+📌 Build Details
+━━━━━━━━━━━━━━━━━━━━━━
+🔹 Status       : ${status}
+🔹 Job Name     : ${env.JOB_NAME}
+🔹 Build Number : ${env.BUILD_NUMBER}
+
+━━━━━━━━━━━━━━━━━━━━━━
+📊 Execution Summary
+━━━━━━━━━━━━━━━━━━━━━━
+${message}
+
+━━━━━━━━━━━━━━━━━━━━━━
+🔗 View Report
+━━━━━━━━━━━━━━━━━━━━━━
+${env.BUILD_URL}artifact/playwright-report/index.html
+
+━━━━━━━━━━━━━━━━━━━━━━
+🙌 Thanks,
+QA Automation Team
+""",
+
+                    to: "dhruvn1236@gmail.com",
+                    attachmentsPattern: 'playwright-report/index.html'
                 )
-            '''
-
-            // Email bhejega
-            emailext (
-                subject: "Playwright Build: ${currentBuild.currentResult}",
-                body: """
-                Hi,
-
-                Build Status: ${currentBuild.currentResult}
-                Job Name: ${env.JOB_NAME}
-                Build Number: ${env.BUILD_NUMBER}
-
-                Check attached Playwright report.
-
-                Thanks
-                """,
-                to: "dhruvn1236@gmail.com",
-                attachmentsPattern: 'playwright-report/Jenkins-Testo.html'
-            )
+            }
         }
     }
 }

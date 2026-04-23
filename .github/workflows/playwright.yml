@@ -1,4 +1,5 @@
 name: Playwright Tests
+
 on:
   workflow_dispatch:
     inputs:
@@ -6,20 +7,13 @@ on:
         description: "Select Test Tag"
         required: true
         type: choice
-        options:
-          - all
-          - smoke
-          - regression
+        options: [all, smoke, regression]
 
       browser:
         description: "Select Browser"
         required: true
         type: choice
-        options:
-          - all
-          - chromium
-          - firefox
-          - webkit
+        options: [all, chromium, firefox, webkit]
 
       email:
         description: "Enter recipient email (optional)"
@@ -35,6 +29,7 @@ on:
         description: "Run specific folder (optional)"
         required: false
         type: string
+
 jobs:
   test:
     timeout-minutes: 60
@@ -56,32 +51,29 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run Playwright Tests
+        id: run_tests
         run: |
-          echo "Starting Playwright execution..."
+          echo "🚀 Starting Playwright execution..."
 
           CMD="npx playwright test"
 
-          # Tag filter (skip if all)
           if [ "${{ github.event.inputs.tag }}" != "all" ]; then
             CMD="$CMD --grep @${{ github.event.inputs.tag }}"
           fi
 
-          # File (optional)
-          if [ ! -z "${{ github.event.inputs.file }}" ]; then
+          if [ -n "${{ github.event.inputs.file }}" ]; then
             CMD="$CMD ${{ github.event.inputs.file }}"
           fi
 
-          # Folder (optional)
-          if [ ! -z "${{ github.event.inputs.folder }}" ]; then
+          if [ -n "${{ github.event.inputs.folder }}" ]; then
             CMD="$CMD ${{ github.event.inputs.folder }}"
           fi
 
-          # Browser (skip if all -> runs all browsers)
           if [ "${{ github.event.inputs.browser }}" != "all" ]; then
             CMD="$CMD --project=${{ github.event.inputs.browser }}"
           fi
 
-          echo "Executing command: $CMD"
+          echo "👉 Executing: $CMD"
           eval $CMD
 
       - name: Upload HTML Report
@@ -90,13 +82,6 @@ jobs:
         with:
           name: playwright-report
           path: playwright-report/
-
-      - name: Prepare Email Attachment
-        if: ${{ always() && github.event.inputs.email != '' }}
-        run: |
-          if [ -f "playwright-report/index.html" ]; then
-            cp "playwright-report/index.html" "playwright-report/GitAction-Testo.html"
-          fi
 
       - name: Send Email Report
         if: ${{ always() && github.event.inputs.email != '' }}
@@ -109,14 +94,37 @@ jobs:
           server_port: 465
           username: ${{ env.EMAIL_USER }}
           password: ${{ env.EMAIL_PASS }}
-          subject: Playwright Test Results
-          body: |
-            Playwright execution completed.
 
-            Tag: ${{ github.event.inputs.tag }}
-            Browser: ${{ github.event.inputs.browser }}
+          subject: |
+            ${{ job.status == 'success' && '✅ Playwright Tests Passed' || '❌ Playwright Tests Failed' }}
 
-            Please check the attached report.
           to: ${{ github.event.inputs.email }}
-          from: GitHub Actions
-          attachments: playwright-report/GitAction-Testo.html
+          from: ${{ env.EMAIL_USER }}
+
+          body: |
+            🚀 Playwright Test Execution Report
+
+            ──────────────────────────────
+            📌 Build Details
+            ──────────────────────────────
+            🔹 Status       : ${{ job.status }}
+            🔹 Tag          : ${{ github.event.inputs.tag }}
+            🔹 Browser      : ${{ github.event.inputs.browser }}
+            🔹 Repository   : ${{ github.repository }}
+            🔹 Run Number   : ${{ github.run_number }}
+
+            ──────────────────────────────
+            📊 Execution Summary
+            ──────────────────────────────
+            ${{ job.status == 'success' && '✅ All test cases passed successfully.' || '❌ Some test cases failed. Please check the report.' }}
+
+            ──────────────────────────────
+            🔗 View Full Report
+            ──────────────────────────────
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            ──────────────────────────────
+            🙌 Thanks,
+            QA Automation Team
+
+          attachments: playwright-report/index.html
