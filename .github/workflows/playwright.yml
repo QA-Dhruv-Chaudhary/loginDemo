@@ -127,11 +127,6 @@ jobs:
             ${{ job.status == 'success' && '✅ All test cases passed successfully.' || '❌ Some test cases failed. Please check the report.' }}
 
             ──────────────────────────────
-            🔗 View Full Report
-            ──────────────────────────────
-            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
-            ──────────────────────────────
             🙌 Thanks,
             QA Automation Team
 

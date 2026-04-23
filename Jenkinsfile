@@ -74,11 +74,6 @@ pipeline {
 ${message}
 
 ━━━━━━━━━━━━━━━━━━━━━━
-🔗 View Report
-━━━━━━━━━━━━━━━━━━━━━━
-${env.BUILD_URL}artifact/playwright-report/Jenkins-Testo.html
-
-━━━━━━━━━━━━━━━━━━━━━━
 🙌 Thanks,
 QA Automation Team
 """,
