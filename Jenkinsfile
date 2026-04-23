@@ -1,14 +1,6 @@
 pipeline {
     agent any
 
-    parameters {
-        string(
-            name: 'RECIPIENT_EMAIL',
-            defaultValue: '',
-            description: 'Recipient email for test report (optional if configured globally as RECIPIENT_EMAIL)'
-        )
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -37,7 +29,6 @@ pipeline {
 
     post {
         always {
-            // Archive report
             archiveArtifacts artifacts: 'playwright-report/**', allowEmptyArchive: true
 
             script {
@@ -52,19 +43,10 @@ pipeline {
                     message = "⚠️ Build is unstable. Review required."
                 }
 
-                bat '''
-                    if exist "playwright-report\\index.html" (
-                        copy /Y "playwright-report\\index.html" "playwright-report\\Jenkins-Testo.html"
-                    )
-                '''
+                emailext (
+                    subject: "${status == 'SUCCESS' ? '✅ Playwright Tests Passed' : '❌ Playwright Tests Failed'}",
 
-                def recipient = (params.RECIPIENT_EMAIL ?: env.RECIPIENT_EMAIL ?: '').trim()
-
-                if (recipient) {
-                    emailext (
-                        subject: "${status == 'SUCCESS' ? '✅ Playwright Tests Passed' : '❌ Playwright Tests Failed'}",
-
-                        body: """
+                    body: """
 🚀 Playwright Test Execution Report
 
 ━━━━━━━━━━━━━━━━━━━━━━
@@ -73,7 +55,6 @@ pipeline {
 🔹 Status       : ${status}
 🔹 Job Name     : ${env.JOB_NAME}
 🔹 Build Number : ${env.BUILD_NUMBER}
-🔹 Sent Using   : Jenkins
 
 ━━━━━━━━━━━━━━━━━━━━━━
 📊 Execution Summary
@@ -85,12 +66,9 @@ ${message}
 QA Automation Team
 """,
 
-                        to: recipient,
-                        attachmentsPattern: 'playwright-report/Jenkins-Testo.html'
-                    )
-                } else {
-                    echo "Email skipped: RECIPIENT_EMAIL not provided (build parameter or env var)."
-                }
+                    to: "dhruvn1236@gmail.com",
+                    attachmentsPattern: 'playwright-report/index.html'
+                )
             }
         }
     }
