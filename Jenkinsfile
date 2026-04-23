@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        RECIPIENT_EMAIL = "${env.RECIPIENT_EMAIL}"
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -44,6 +48,12 @@ pipeline {
                     message = "⚠️ Build is unstable. Review required."
                 }
 
+                bat '''
+                    if exist "playwright-report\\index.html" (
+                        copy /Y "playwright-report\\index.html" "playwright-report\\Jenkins-Testo.html"
+                    )
+                '''
+
                 emailext (
                     subject: "${status == 'SUCCESS' ? '✅ Playwright Tests Passed' : '❌ Playwright Tests Failed'}",
 
@@ -56,6 +66,7 @@ pipeline {
 🔹 Status       : ${status}
 🔹 Job Name     : ${env.JOB_NAME}
 🔹 Build Number : ${env.BUILD_NUMBER}
+🔹 Sent Using   : Jenkins
 
 ━━━━━━━━━━━━━━━━━━━━━━
 📊 Execution Summary
@@ -65,15 +76,15 @@ ${message}
 ━━━━━━━━━━━━━━━━━━━━━━
 🔗 View Report
 ━━━━━━━━━━━━━━━━━━━━━━
-${env.BUILD_URL}artifact/playwright-report/index.html
+${env.BUILD_URL}artifact/playwright-report/Jenkins-Testo.html
 
 ━━━━━━━━━━━━━━━━━━━━━━
 🙌 Thanks,
 QA Automation Team
 """,
 
-                    to: "dhruvn1236@gmail.com",
-                    attachmentsPattern: 'playwright-report/index.html'
+                    to: "${env.RECIPIENT_EMAIL}",
+                    attachmentsPattern: 'playwright-report/Jenkins-Testo.html'
                 )
             }
         }
