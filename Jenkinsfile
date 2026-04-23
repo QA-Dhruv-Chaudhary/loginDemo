@@ -5,10 +5,6 @@ pipeline {
         string(name: 'RECIPIENT_EMAIL', defaultValue: '', description: 'Enter recipient email')
     }
 
-    environment {
-        RECIPIENT_EMAIL = "${env.RECIPIENT_EMAIL}"
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -37,59 +33,34 @@ pipeline {
 
     post {
         always {
-            // Archive report
             archiveArtifacts artifacts: 'playwright-report/**', allowEmptyArchive: true
 
             script {
                 def status = currentBuild.currentResult
                 def recipientEmail = params.RECIPIENT_EMAIL?.trim()
-                if (!recipientEmail) {
-                    recipientEmail = env.RECIPIENT_EMAIL?.trim()
-                }
 
-                def message = ""
-                if (status == "SUCCESS") {
-                    message = "✅ All test cases passed successfully."
-                } else if (status == "FAILURE") {
-                    message = "❌ Some test cases failed. Please check the report."
-                } else {
-                    message = "⚠️ Build is unstable. Review required."
-                }
-
-                bat '''
-                    if exist "playwright-report\\index.html" (
-                        copy /Y "playwright-report\\index.html" "playwright-report\\Jenkins-Testo.html"
-                    )
-                '''
+                def message = status == "SUCCESS" 
+                    ? "✅ All test cases passed successfully."
+                    : "❌ Some test cases failed. Please check the report."
 
                 if (recipientEmail) {
                     emailext (
-                        subject: "${status == 'SUCCESS' ? '✅ Playwright Tests Passed' : '❌ Playwright Tests Failed'}",
+                        subject: "${status == 'SUCCESS' ? '✅ Playwright Passed' : '❌ Playwright Failed'}",
 
                         body: """
-🚀 Playwright Test Execution Report
+🚀 Playwright Test Report
 
-━━━━━━━━━━━━━━━━━━━━━━
-📌 Build Details
-━━━━━━━━━━━━━━━━━━━━━━
-🔹 Status       : ${status}
-🔹 Sent Using   : Jenkins
+Status       : ${status}
+Job Name     : ${env.JOB_NAME}
+Build Number : ${env.BUILD_NUMBER}
 
-━━━━━━━━━━━━━━━━━━━━━━
-📊 Execution Summary
-━━━━━━━━━━━━━━━━━━━━━━
-${message}
-
-━━━━━━━━━━━━━━━━━━━━━━
-🙌 Thanks,
-QA Automation Team
 """,
 
                         to: recipientEmail,
-                        attachmentsPattern: 'playwright-report/Jenkins-Testo.html'
+                        attachmentsPattern: 'playwright-report/JenkinsAction.html'
                     )
                 } else {
-                    echo 'RECIPIENT_EMAIL is not set. Skipping email notification.'
+                    echo '❌ No email entered. Skipping email.'
                 }
             }
         }

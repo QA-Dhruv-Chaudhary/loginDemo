@@ -83,13 +83,6 @@ jobs:
           name: playwright-report
           path: playwright-report/
 
-      - name: Prepare Email Attachment
-        if: ${{ always() && github.event.inputs.email != '' }}
-        run: |
-          if [ -f "playwright-report/index.html" ]; then
-            cp "playwright-report/index.html" "playwright-report/GitAction-Testo.html"
-          fi
-
       - name: Send Email Report
         if: ${{ always() && github.event.inputs.email != '' }}
         uses: dawidd6/action-send-mail@v3
@@ -125,7 +118,12 @@ jobs:
             ${{ job.status == 'success' && '✅ All test cases passed successfully.' || '❌ Some test cases failed. Please check the report.' }}
 
             ──────────────────────────────
+            🔗 View Full Report
+            ──────────────────────────────
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            ──────────────────────────────
             🙌 Thanks,
             QA Automation Team
 
-          attachments: playwright-report/GitAction-Testo.html
+          attachments: playwright-report/GitAction.html
