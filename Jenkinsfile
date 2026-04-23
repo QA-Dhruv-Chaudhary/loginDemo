@@ -32,6 +32,13 @@ pipeline {
             // Report archive karega Jenkins me
             archiveArtifacts artifacts: 'playwright-report/**', allowEmptyArchive: true
 
+            // Email attachment ke liye custom filename banayega
+            bat '''
+                if exist "playwright-report\\index.html" (
+                    copy /Y "playwright-report\\index.html" "playwright-report\\Jenkins-Testo.html"
+                )
+            '''
+
             // Email bhejega
             emailext (
                 subject: "Playwright Build: ${currentBuild.currentResult}",
@@ -47,7 +54,7 @@ pipeline {
                 Thanks
                 """,
                 to: "dhruvn1236@gmail.com",
-                attachmentsPattern: 'playwright-report/**'
+                attachmentsPattern: 'playwright-report/Jenkins-Testo.html'
             )
         }
     }
