@@ -1,8 +1,12 @@
 pipeline {
     agent any
 
-    environment {
-        RECIPIENT_EMAIL = "${env.RECIPIENT_EMAIL}"
+    parameters {
+        string(
+            name: 'RECIPIENT_EMAIL',
+            defaultValue: '',
+            description: 'Recipient email for test report (optional if configured globally as RECIPIENT_EMAIL)'
+        )
     }
 
     stages {
@@ -54,10 +58,13 @@ pipeline {
                     )
                 '''
 
-                emailext (
-                    subject: "${status == 'SUCCESS' ? '✅ Playwright Tests Passed' : '❌ Playwright Tests Failed'}",
+                def recipient = (params.RECIPIENT_EMAIL ?: env.RECIPIENT_EMAIL ?: '').trim()
 
-                    body: """
+                if (recipient) {
+                    emailext (
+                        subject: "${status == 'SUCCESS' ? '✅ Playwright Tests Passed' : '❌ Playwright Tests Failed'}",
+
+                        body: """
 🚀 Playwright Test Execution Report
 
 ━━━━━━━━━━━━━━━━━━━━━━
@@ -78,9 +85,12 @@ ${message}
 QA Automation Team
 """,
 
-                    to: "${env.RECIPIENT_EMAIL}",
-                    attachmentsPattern: 'playwright-report/Jenkins-Testo.html'
-                )
+                        to: recipient,
+                        attachmentsPattern: 'playwright-report/Jenkins-Testo.html'
+                    )
+                } else {
+                    echo "Email skipped: RECIPIENT_EMAIL not provided (build parameter or env var)."
+                }
             }
         }
     }
