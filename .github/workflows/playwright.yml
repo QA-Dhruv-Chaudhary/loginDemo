@@ -117,8 +117,6 @@ jobs:
             🔹 Status       : ${{ job.status }}
             🔹 Tag          : ${{ github.event.inputs.tag }}
             🔹 Browser      : ${{ github.event.inputs.browser }}
-            🔹 Repository   : ${{ github.repository }}
-            🔹 Run Number   : ${{ github.run_number }}
             🔹 Sent Using   : GitHub Actions
 
             ──────────────────────────────
